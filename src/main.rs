@@ -116,6 +116,152 @@ fn p4() {
     println!("A4: {}", find_largest_palindrom_prod_of_2_less_than(1000));
 }
 
+fn is_divisible_by_all_up_to(number: usize, top: usize) -> bool {
+    for i in 1..top {
+        if number % i != 0 {
+            return false;
+        }
+    }
+    return true;
+}
+
+fn smallest_divisible_by_all(top: usize) -> usize {
+    let mut i = top;
+    loop {
+        if is_divisible_by_all_up_to(i, top) {
+            return i;
+        }
+        i += 1;
+    }
+}
+fn p5() {
+    // 2520 is the smallest number that can be divided by each of the numbers from 1 to 10 without any remainder.
+    // What is the smallest positive number that is evenly divisible by all of the numbers from 1 to 20?
+    
+    println!("A5: {}", smallest_divisible_by_all(20));
+}
+
+fn p6() {
+    //Find the difference between the sum of the squares of the first one hundred natural numbers and the square of the sum.
+    let mut sum_of_squares = 0;
+    let mut sum = 0;
+    for i in 1..101 {
+        sum_of_squares += i*i;
+        sum += i;
+    }
+
+    println!("A6: {}", sum*sum - sum_of_squares);
+}
+
+fn is_prime(n: usize) -> bool {
+    let f = n as f64;
+    let max = f.sqrt().ceil() as usize;
+    for i in 2..max+1 {
+        if n % i == 0 {
+            return false;
+        }
+    }
+    return true;
+}
+
+fn p7() {
+    // By listing the first six prime numbers: 2, 3, 5, 7, 11, and 13, we can see that the 6th prime is 13.
+    // What is the 10 001st prime number?
+    
+    let mut i = 2;
+    let mut n_primes = 1;
+    let mut prime = 2;
+    let mut found = false;
+    while !found {
+        if is_prime(i) {
+            if n_primes == 10001 - 1 {
+                prime = i;
+                found = true;
+            }
+            n_primes += 1;
+        }
+        i += 1;
+    }
+    
+    println!("A7: {}", prime);
+}
+
+fn get_prod_starting_at(start: usize, num_digits: usize, number: &Vec<u32>) -> usize {
+    let mut sum = 1 as usize;
+    if start + num_digits >= number.len() {
+        return 0;
+    }
+    for i in start..start+num_digits {
+        sum *= number[i] as usize;
+    }
+    return sum;
+}
+
+fn find_greatest_streak(num_digits: usize, number: &Vec<u32>) -> usize {
+    let mut winner = 0;
+    for i in 0..number.len() {
+        let tmp = get_prod_starting_at(i, num_digits, number);
+        if tmp > winner {
+            winner = tmp;
+        }
+    }
+    return winner;
+}
+
+fn p8() {
+    // The four adjacent digits in the 1000-digit number that have the greatest product are 9 × 9 × 8 × 9 = 5832.
+
+    // 73167176531330624919225119674426574742355349194934
+    // 96983520312774506326239578318016984801869478851843
+    // 85861560789112949495459501737958331952853208805511
+    // 12540698747158523863050715693290963295227443043557
+    // 66896648950445244523161731856403098711121722383113
+    // 62229893423380308135336276614282806444486645238749
+    // 30358907296290491560440772390713810515859307960866
+    // 70172427121883998797908792274921901699720888093776
+    // 65727333001053367881220235421809751254540594752243
+    // 52584907711670556013604839586446706324415722155397
+    // 53697817977846174064955149290862569321978468622482
+    // 83972241375657056057490261407972968652414535100474
+    // 82166370484403199890008895243450658541227588666881
+    // 16427171479924442928230863465674813919123162824586
+    // 17866458359124566529476545682848912883142607690042
+    // 24219022671055626321111109370544217506941658960408
+    // 07198403850962455444362981230987879927244284909188
+    // 84580156166097919133875499200524063689912560717606
+    // 05886116467109405077541002256983155200055935729725
+    // 71636269561882670428252483600823257530420752963450
+    // 
+    // Find the thirteen adjacent digits in the 1000-digit number that have the greatest product. What is the value of this product?
+    
+    let number_str = "
+    73167176531330624919225119674426574742355349194934
+    96983520312774506326239578318016984801869478851843
+    85861560789112949495459501737958331952853208805511
+    12540698747158523863050715693290963295227443043557
+    66896648950445244523161731856403098711121722383113
+    62229893423380308135336276614282806444486645238749
+    30358907296290491560440772390713810515859307960866
+    70172427121883998797908792274921901699720888093776
+    65727333001053367881220235421809751254540594752243
+    52584907711670556013604839586446706324415722155397
+    53697817977846174064955149290862569321978468622482
+    83972241375657056057490261407972968652414535100474
+    82166370484403199890008895243450658541227588666881
+    16427171479924442928230863465674813919123162824586
+    17866458359124566529476545682848912883142607690042
+    24219022671055626321111109370544217506941658960408
+    07198403850962455444362981230987879927244284909188
+    84580156166097919133875499200524063689912560717606
+    05886116467109405077541002256983155200055935729725
+    71636269561882670428252483600823257530420752963450
+    ";
+
+    let number = number_str.chars().filter_map(|x| x.to_digit(10)).collect();
+
+    println!("A8: {}", find_greatest_streak(13, &number));
+}
+
 fn main() {
     let args: Vec<_> = env::args().collect();
     if args.len() < 2 {
@@ -127,6 +273,10 @@ fn main() {
         "2" => p2(),
         "3" => p3(),
         "4" => p4(),
+        "5" => p5(),
+        "6" => p6(),
+        "7" => p7(),
+        "8" => p8(),
         _ => println!("that's not a problem I recognize"),
     }
 }
