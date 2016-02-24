@@ -262,6 +262,31 @@ fn p8() {
     println!("A8: {}", find_greatest_streak(13, &number));
 }
 
+fn p9() {
+    // A Pythagorean triplet is a set of three natural numbers, a < b < c, for which,
+    //
+    // a2 + b2 = c2
+    // For example, 32 + 42 = 9 + 16 = 25 = 52.
+    //
+    // There exists exactly one Pythagorean triplet for which a + b + c = 1000.
+    // Find the product abc.
+
+    for a in 1..1000 {
+        for b in 1..1000 {
+            let sum_lhs = (a*a + b*b) as f64;
+            let c = sum_lhs.sqrt();
+            if c == c.floor() {
+                let c = c as usize;
+                if a + b + c == 1000 {
+                    println!("A9: {}", a * b * c);
+                    return;
+                }
+            }
+        }
+    }
+
+}
+
 fn main() {
     let args: Vec<_> = env::args().collect();
     if args.len() < 2 {
@@ -277,6 +302,7 @@ fn main() {
         "6" => p6(),
         "7" => p7(),
         "8" => p8(),
+        "9" => p9(),
         _ => println!("that's not a problem I recognize"),
     }
 }
