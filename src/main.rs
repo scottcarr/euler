@@ -1,4 +1,5 @@
 use std::env;
+use std::cmp;
 
 fn p1() {
     // If we list all the natural numbers below 10 that are multiples of 3 or 5, we get 3, 5, 6 and 9. The sum of these multiples is 23.
@@ -34,9 +35,35 @@ fn p2() {
 }
 
 fn get_primes_up_to(n : usize) -> Vec<bool>  {
+    // this guesses the the initial number wasn't prime
     // the sieve of eratosthenes
     let n = n as f32;
     let n_primes_guess = n.sqrt().ceil() as usize;
+    let mut primes = vec![true; n_primes_guess];
+    primes[0] = false;
+    primes[1] = false;
+    for i in 0..n_primes_guess {
+        if i * i > n_primes_guess {
+            break;
+        }
+        if primes[i] {
+            // rust doesnt have the regular for loop and i dont
+            // know how to increment by a number other than 1 nicely
+            // i want: for(j = i*i; j < n_primes_guess; j += i)
+            let mut j = i*i;
+            while j < n_primes_guess {
+                primes[j] = false;
+                j = j + i;
+            }
+        }
+    }
+    return primes;
+}
+
+fn get_primes_up_to2(n : usize) -> Vec<bool>  {
+    // the sieve of eratosthenes
+    let n = n as f32;
+    let n_primes_guess = n as usize;
     let mut primes = vec![true; n_primes_guess];
     primes[0] = false;
     primes[1] = false;
@@ -287,6 +314,129 @@ fn p9() {
 
 }
 
+fn p10() {
+    // The sum of the primes below 10 is 2 + 3 + 5 + 7 = 17.
+    // Find the sum of all the primes below two million.
+
+    let lim = 2000000;
+    //let lim = 10;
+    let x = get_primes_up_to2(lim);
+    let mut sum = 0;
+    for (i, is_prime) in x.iter().enumerate() {
+        println!("{}:{}", i, *is_prime);
+        if *is_prime {
+            sum += i;
+        }
+    }
+    println!("A10: {}", sum);
+}
+
+struct SquareMatrix {
+    data: Vec<u8>,
+    n : usize,
+}
+
+impl SquareMatrix {
+    fn at(&self, row: usize, col: usize) -> usize {
+        return self.data[row*self.n+col] as usize;
+    }
+    fn is_start_of_valid_horz_4(&self, row: usize, col: usize) -> bool {
+        return col + 3 < self.n && row < self.n;
+    }
+    fn is_start_of_valid_vert_4(&self, row: usize, col: usize) -> bool {
+        return row + 3 < self.n && col < self.n;
+    }
+    fn is_start_of_valid_right_diag_4(&self, row: usize, col: usize) -> bool {
+        return col + 3 < self.n && row + 3 < self.n;
+    }
+    fn is_start_of_valid_left_diag_4(&self, row: usize, col: usize) -> bool {
+        return col >= 3 && col - 3 < self.n && row + 3 < self.n;
+    }
+    fn get_right_diag_4_prod(&self, row: usize, col: usize) -> usize {
+        let mut tot : usize = 1;
+        for i in 0..4 {
+            tot *= self.at(row + i, col + i);
+        }
+        println!("({}, {}) diag = {}", row, col, tot);
+        return tot;
+    }
+    fn get_left_diag_4_prod(&self, row: usize, col: usize) -> usize {
+        let mut tot : usize = 1;
+        for i in 0..4 {
+            tot *= self.at(row + i, col - i);
+        }
+        println!("({}, {}) diag = {}", row, col, tot);
+        return tot;
+    }
+    fn get_horz_4_prod(&self, row: usize, col: usize) -> usize {
+        let mut tot : usize = 1;
+        for i in 0..4 {
+            tot *= self.at(row, col + i);
+        }
+        println!("({}, {}) horz = {}", row, col, tot);
+        return tot;
+    }
+    fn get_vert_4_prod(&self, row: usize, col: usize) -> usize {
+        let mut tot : usize = 1;
+        for i in 0..4 {
+            tot *= self.at(row + i, col);
+        }
+        println!("({}, {}) down = {}", row, col, tot);
+        return tot;
+    }
+
+}
+
+fn p11() {
+    // What is the greatest product of four adjacent numbers in the same direction (up, down, left, right, or diagonally) in the 20×20 grid?
+    let d = vec!(
+08,02,22,97,38,15,00,40,00,75,04,05,07,78,52,12,50,77,91,08,
+49,49,99,40,17,81,18,57,60,87,17,40,98,43,69,48,04,56,62,00,
+81,49,31,73,55,79,14,29,93,71,40,67,53,88,30,03,49,13,36,65,
+52,70,95,23,04,60,11,42,69,24,68,56,01,32,56,71,37,02,36,91,
+22,31,16,71,51,67,63,89,41,92,36,54,22,40,40,28,66,33,13,80,
+24,47,32,60,99,03,45,02,44,75,33,53,78,36,84,20,35,17,12,50,
+32,98,81,28,64,23,67,10,26,38,40,67,59,54,70,66,18,38,64,70,
+67,26,20,68,02,62,12,20,95,63,94,39,63,08,40,91,66,49,94,21,
+24,55,58,05,66,73,99,26,97,17,78,78,96,83,14,88,34,89,63,72,
+21,36,23,09,75,00,76,44,20,45,35,14,00,61,33,97,34,31,33,95,
+78,17,53,28,22,75,31,67,15,94,03,80,04,62,16,14,09,53,56,92,
+16,39,05,42,96,35,31,47,55,58,88,24,00,17,54,24,36,29,85,57,
+86,56,00,48,35,71,89,07,05,44,44,37,44,60,21,58,51,54,17,58,
+19,80,81,68,05,94,47,69,28,73,92,13,86,52,17,77,04,89,55,40,
+04,52,08,83,97,35,99,16,07,97,57,32,16,26,26,79,33,27,98,66,
+88,36,68,87,57,62,20,72,03,46,33,67,46,55,12,32,63,93,53,69,
+04,42,16,73,38,25,39,11,24,94,72,18,08,46,29,32,40,62,76,36,
+20,69,36,41,72,30,23,88,34,62,99,69,82,67,59,85,74,04,36,16,
+20,73,35,29,78,31,90,01,74,31,49,71,48,86,81,16,23,57,05,54,
+01,70,54,71,83,51,54,69,16,92,33,48,61,43,52,01,89,19,67,48
+);
+    let m = SquareMatrix {data : d, n : 20};
+    let mut winner : usize = 0;
+    for i in 0..20 {
+        for j in 0..20 {
+            if m.is_start_of_valid_vert_4(i,j) {
+                let x = m.get_vert_4_prod(i,j);
+                winner = cmp::max(x, winner);
+            }
+            if m.is_start_of_valid_left_diag_4(i,j) {
+                let x = m.get_left_diag_4_prod(i,j);
+                winner = cmp::max(x, winner);
+            }
+            if m.is_start_of_valid_right_diag_4(i,j) {
+                let x = m.get_right_diag_4_prod(i,j);
+                winner = cmp::max(x, winner);
+            }
+            if m.is_start_of_valid_horz_4(i,j) {
+                let x = m.get_horz_4_prod(i,j);
+                winner = cmp::max(x, winner);
+            }
+        }
+    }
+    println!("A11: {}", winner);
+    //println!("{}", m.get_diag_4_prod(6,8));
+}
+
 fn main() {
     let args: Vec<_> = env::args().collect();
     if args.len() < 2 {
@@ -303,6 +453,8 @@ fn main() {
         "7" => p7(),
         "8" => p8(),
         "9" => p9(),
+        "10" => p10(),
+        "11" => p11(),
         _ => println!("that's not a problem I recognize"),
     }
 }
