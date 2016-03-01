@@ -461,19 +461,33 @@ fn p11() {
 //    vec
 //}
 
-fn get_all_divisors(n: usize) -> Vec<usize> {
-    let mut vec = Vec::new();
+//fn get_all_divisors(n: usize) -> Vec<usize> {
+//    let mut vec = Vec::new();
+//    let n_float = n as f64;
+//    vec.push(1);
+//    for i in 2..n {
+//        let i_float = i as f64;
+//        let res = n_float / i_float;
+//        if res == res.ceil() {
+//            vec.push(i);
+//        }
+//    }
+//    vec.push(n);
+//    vec
+//}
+
+fn get_num_divisors(n: usize) -> usize {
     let n_float = n as f64;
-    vec.push(1);
+    let mut n_divs = 1;
     for i in 2..n {
         let i_float = i as f64;
         let res = n_float / i_float;
         if res == res.ceil() {
-            vec.push(i);
+            n_divs += 1;
         }
     }
-    vec.push(n);
-    vec
+    n_divs += 1;
+    n_divs
 }
 
 fn p12() {
@@ -511,15 +525,19 @@ fn p12() {
     //    println!("{}", d);
     //}
     
-    let mut vec = Vec::new();
+    //let mut vec = Vec::new();
     let mut tri = 0;
-    let mut i = 1;
-    while (vec.size() <= 500) {
+    let mut i = 0;
+    let mut n_divs = 0;
+    while n_divs <= 500 {
         tri += i;
-        vec = get_all_divisors(tri);
+        n_divs = get_num_divisors(tri);
+        println!("tri: {}. n_divs: {}", tri, n_divs);
         i += 1;
     }
-    println("A12: {}", tri);
+    println!("A12: {}", tri);
+    //let n_divs = get_num_divisors(10000000000);
+    //println!("{}", n_divs);
 
 }
 
