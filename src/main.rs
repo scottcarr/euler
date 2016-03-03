@@ -546,15 +546,86 @@ struct BigNum {
 }
 
 impl BigNum {
+    fn from(s: &String) -> BigNum {
+        let mut rv = BigNum{digits: Vec::new()};
+        rv.parse(s);
+        rv
+    }
+    //fn new() -> BigNum {
+    //    BigNum{digits: Vec::new()}
+    //}
     fn parse(&mut self, s: &String) {
+        self.digits.reserve(s.len());
         for i in s.chars() {
-            let digitOpt = i.to_digit(10);
-            let digit = match digitOpt {
+            let digit_opt = i.to_digit(10);
+            let digit = match digit_opt {
                 Some(x) => x, 
                 None => panic!("it should have been a digit"),
             };
             self.digits.push(digit);
         }
+    }
+    fn print10(&self) {
+        for i in 0..10 {
+            print!("{}", self.digits[i]);
+        }
+        print!("\n");
+    }
+    //fn print(&self) {
+    //    for d in self.digits.iter() {
+    //        print!("{}", d);
+    //    }
+    //    print!("\n");
+    //}
+    fn add(&self, other: &BigNum) -> BigNum {
+        // the two numbers are like:
+        // 01234567
+        // 0123
+        //
+        // so we need to start from len() - 1 of each and move down (left)
+        // until we reach 0 and then padd with zeros
+        //
+        // effectively giving in our example:
+        // 01234567
+        // 00000123
+        //
+        // rust will not let a usize got negative so you cant increment
+        // a size counter to -1.  so we need a special flag that says
+        // "okay we really should be -1 so starting padding with zeroes"
+        let max_digits = cmp::max(self.digits.len(), other.digits.len());
+        let mut new_digits = Vec::new();
+        new_digits.reserve(max_digits+1);
+        let mut carry = 0;
+        let mut o_idx = other.digits.len() - 1;
+        let mut s_idx = self.digits.len() - 1;
+        let mut s_done = false;
+        let mut o_done = false;
+        while !(s_done && o_done) {
+            let a = if o_done { 0 } else { other.digits[o_idx] };
+            let b = if s_done { 0 } else { self.digits[s_idx] };
+            let tmp = a + b + carry;
+            carry = if tmp >= 10 { 1 } else { 0 };
+            new_digits.push(tmp % 10);
+
+            // index updates
+            if o_idx == 0 {
+                o_done = true;
+            }
+            if s_idx == 0 {
+                s_done = true;
+            }
+            if !o_done {
+                o_idx -= 1;
+            }
+            if !s_done {
+                s_idx -= 1;
+            }
+        }
+        if carry == 1 {
+            new_digits.push(1);
+        }
+        new_digits.reverse();
+        BigNum{digits: new_digits}
     }
 }
 
@@ -662,12 +733,45 @@ fn p13() {
      "20849603980134001723930671666823555245252804609722",
      "53503534226472524250874054075591789781264330331690",
      );
-    let mut bigNums = Vec::new();
+    let mut big_nums = Vec::new();
     for n in numbers {
-        let mut bn = BigNum{digits : Vec::new()};
-        bn.parse(&String::from(n));
-        bigNums.push(bn);
+        //let mut bn = BigNum{digits : Vec::new()};
+        let bn = BigNum::from(&String::from(n));
+        //bn.print();
+        big_nums.push(bn);
     }
+
+    let mut accum = BigNum::from(&String::from("0"));
+    for bn in big_nums {
+        accum = accum.add(&bn);
+        //accum.print();
+    }
+
+    print!("A13: ");
+    accum.print10();
+    print!("\n");
+
+    //let a = BigNum::from(&String::from("13243124"));
+    //let b = BigNum::from(&String::from("0"));
+    //let b = BigNum::from(&String::from("20849603980134001723930671666823555245252804609722"));
+    //a.print();
+    //b.print();
+    //let c = a.add(&b);
+    //c.print();
+    
+    //let a = BigNum::from(&String::from("10"));
+    //let b = BigNum::from(&String::from("99"));
+    //a.print();
+    //b.print();
+    //let c = a.add(&b);
+    //c.print();
+
+    //let d = BigNum::from(&String::from("555555"));
+    //let e = BigNum::from(&String::from("99"));
+    //d.print();
+    //e.print();
+    //let f = d.add(&e);
+    //f.print();
 }
 
 fn main() {
