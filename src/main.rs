@@ -332,11 +332,18 @@ fn p10() {
 }
 
 struct SquareMatrix {
-    data: Vec<u8>,
+    data: Vec<usize>,
     n : usize,
 }
 
 impl SquareMatrix {
+    fn new(n_ele: usize) -> SquareMatrix {
+        let mut d = vec![0; n_ele*n_ele];
+        SquareMatrix{data: d, n: n_ele}
+    }
+    fn set(&mut self, row: usize, col: usize, val: usize) {
+        self.data[row*self.n+col] = val;
+    }
     fn at(&self, row: usize, col: usize) -> usize {
         return self.data[row*self.n+col] as usize;
     }
@@ -384,12 +391,19 @@ impl SquareMatrix {
         println!("({}, {}) down = {}", row, col, tot);
         return tot;
     }
-
+    fn print(&self) {
+        for i in 0..self.n {
+            for j in 0..self.n {
+                print!("{} ", self.at(i,j));
+            }
+            print!("\n");
+        }
+    }
 }
 
 fn p11() {
     // What is the greatest product of four adjacent numbers in the same direction (up, down, left, right, or diagonally) in the 20×20 grid?
-    let d = vec!(
+    let mut d = vec!(
 08,02,22,97,38,15,00,40,00,75,04,05,07,78,52,12,50,77,91,08,
 49,49,99,40,17,81,18,57,60,87,17,40,98,43,69,48,04,56,62,00,
 81,49,31,73,55,79,14,29,93,71,40,67,53,88,30,03,49,13,36,65,
@@ -411,7 +425,7 @@ fn p11() {
 20,73,35,29,78,31,90,01,74,31,49,71,48,86,81,16,23,57,05,54,
 01,70,54,71,83,51,54,69,16,92,33,48,61,43,52,01,89,19,67,48
 );
-    let m = SquareMatrix {data : d, n : 20};
+    let m = SquareMatrix {data: d, n: 20};
     let mut winner : usize = 0;
     for i in 0..20 {
         for j in 0..20 {
@@ -774,6 +788,115 @@ fn p13() {
     //f.print();
 }
 
+fn get_next_collatz(n: usize) -> usize {
+    if n % 2 == 0 {
+        n/2
+    } else {
+        3*n + 1
+    }
+}
+
+fn get_collatz_seq(start: usize) -> Vec<usize> {
+    let mut seq = Vec::new();
+    let mut next = get_next_collatz(start);
+    while next != 1 {
+        seq.push(next);
+        next = get_next_collatz(next);
+    }
+    seq.push(1);
+    seq
+}
+
+fn count_collatz_seq_len(start: usize) -> usize {
+    let mut next = get_next_collatz(start);
+    let mut len = 1;
+    while next != 1 {
+        next = get_next_collatz(next);
+        len += 1
+    }
+    len
+}
+
+fn p14() {
+
+
+    // The following iterative sequence is defined for the set of positive integers:
+    // 
+    // n → n/2 (n is even)
+    // n → 3n + 1 (n is odd)
+    // 
+    // Using the rule above and starting with 13, we generate the following sequence:
+    // 13 → 40 → 20 → 10 → 5 → 16 → 8 → 4 → 2 → 1
+    // 
+    // It can be seen that this sequence (starting at 13 and finishing at 1) contains 10 terms. Although it has not been proved yet (Collatz Problem), it is thought that all starting numbers finish at 1.
+    // 
+    // Which starting number, under one million, produces the longest chain?
+    // 
+    // NOTE: Once the chain starts the terms are allowed to go above one million.
+    
+    //let seq = get_collatz_seq(13);
+    //print!("collatz(13): ");
+    //for n in seq {
+    //    print!("{} ", n);
+    //}
+    //print!("\n");
+    //println!("collatz(13).len: {}", count_collatz_seq_len(13));
+    
+    let mut winner = 0;
+    let mut winner_len = 0;
+    for i in 1..1000000 {
+        //println!("i: {}", i);
+        let len = count_collatz_seq_len(i);
+        if len > winner_len {
+            winner_len = len;
+            winner = i;
+        }
+    }
+    println!("A14: {}", winner);
+}
+
+
+
+fn calc_num_paths(n: usize) -> usize {
+    let n = n + 1;
+    let mut grid = SquareMatrix::new(n);
+    grid.set(n-1, n-1, 1);
+    while grid.at(0,0) == 0 {
+        for i in 0..n {
+            for j in 0..n {
+                let mut down = 0;
+                let mut right = 0;
+                if i == n-1 && j == n-1 {
+                    continue;
+                } else if i != n-1 && j == n-1 {
+                    down = grid.at(i+1, j);
+                } else if i == n-1  && j != n-1 {
+                    right = grid.at(i, j+1);
+                } else {
+                    // i != n-1 && j != n-1
+                    right = grid.at(i, j+1);
+                    down = grid.at(i+1, j);
+                }
+                grid.set(i, j, right + down);
+            }
+        }
+    }
+    grid.print();
+    return grid.at(0,0);
+}
+
+fn p15() {
+
+    // Starting in the top left corner of a 2×2 grid, and only being able to move to the right and down, 
+    // there are exactly 6 routes to the bottom right corner.
+    // 
+    // How many such routes are there through a 20×20 grid?
+    
+    println!("{}", calc_num_paths(2));
+    println!("A15: {}", calc_num_paths(20));
+}
+        
+
 fn main() {
     let args: Vec<_> = env::args().collect();
     if args.len() < 2 {
@@ -794,6 +917,8 @@ fn main() {
         "11" => p11(),
         "12" => p12(),
         "13" => p13(),
+        "14" => p14(),
+        "15" => p15(),
         _ => println!("that's not a problem I recognize"),
     }
 }
